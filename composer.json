@@ -1,0 +1,21 @@
+{
+    "name": "nfhub/nfconta",
+    "description": "Biblioteca para comunicaçao com a API NFConta do NFHub",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Diego Almeida",
+            "email": "diego.feres82@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "NFHub\\NFConta\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+    	"nfhub/common": "dev-master"
+    }
+}
