@@ -160,6 +160,38 @@ class Tools extends ToolsBase
     }
 
     /**
+     * Função responsável por enviar os dados para cadastrar webhooks no WFPay
+     *
+     * @param int $company_id ID da empresa a ter os documentos consultados
+     * @param array $dados Dados a serem enviados para o webhook
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function cadastrarWebhook(int $company_id, array $dados, array $params = []): array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return $item['name'] !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+
+            $dados = $this->post("nfconta/webhooks", $dados, $params);
+
+            return $dados;
+        } catch (Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
      * Função responsável por buscar o saldo da NFConta
      *
      * @param int $company_id ID da empresa a ter o saldo consultado
