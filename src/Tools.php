@@ -332,7 +332,7 @@ class Tools extends ToolsBase
      * @access public
      * @return array
      */
-    public function listaBancos(array $params = []): array
+    public function listaBancosNFHub(array $params = []): array
     {
         try {
             $dados = $this->get('/nfconta/banks', $params);
@@ -786,6 +786,142 @@ class Tools extends ToolsBase
 
             throw new Exception($dados['body']->message, 1);
         } catch (Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função responsável por retornar as categorias usadas no WFPay
+     *
+     *
+     * @param int $company_id ID da empresa que irá buscar a categoria
+     * @param array $category_id ID da categoria
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function buscaCategorias(int $company_id, int $category_id,  array $params = []): array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return $item['name'] !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+            if (!empty($category_id)) {
+                $params[] = [
+                    'name' => 'category_id',
+                    'value' => $category_id
+                ];
+            }
+
+            $dados = $this->get("nfconta/category", $params);
+
+            if ($dados['httpCode'] == 200) {
+                return $dados;
+            }
+            if (!isset($dados['body']->message)) {
+                throw new Exception(implode("\r\n", $dados['body']->errors), 1);
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+     /**
+     * Função responsável por retornar o Pjbank do WFPay
+     *
+     * @param int $company_id ID da empresa que irá buscar Pjbank
+     * @param int $charge_id ID do WFPay
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function buscaPjbank(int $company_id, int $charge_id,  array $params = []): array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return $item['name'] !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+            if (!empty($charge_id)) {
+                $params[] = [
+                    'name' => 'charge_id',
+                    'value' => $charge_id
+                ];
+            }
+
+            $dados = $this->get("nfconta/pjbank", $params);
+
+            if ($dados['httpCode'] == 200) {
+                return $dados;
+            }
+            if (!isset($dados['body']->message)) {
+                throw new Exception(implode("\r\n", $dados['body']->errors), 1);
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+     /**
+     * Função responsável por retornar as Transactions do WFPay
+     *
+     * @param int $company_id ID da empresa que irá buscar Transactions
+     * @param int $charge_id ID do WFPay
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function buscaTransactions(int $company_id, int $charge_id,  array $params = []): array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return $item['name'] !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+            if (!empty($charge_id)) {
+                $params[] = [
+                    'name' => 'charge_id',
+                    'value' => $charge_id
+                ];
+            }
+
+            $dados = $this->get("nfconta/transactions", $params);
+
+            if ($dados['httpCode'] == 200) {
+                return $dados;
+            }
+            if (!isset($dados['body']->message)) {
+                throw new Exception(implode("\r\n", $dados['body']->errors), 1);
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
             throw new Exception($error, 1);
         }
     }
