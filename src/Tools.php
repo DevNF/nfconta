@@ -885,13 +885,13 @@ class Tools extends ToolsBase
      * Função responsável por retornar as Transactions do WFPay
      *
      * @param int $company_id ID da empresa que irá buscar Transactions
-     * @param int $charge_id ID do WFPay
+     * @param int $transaction_id ID do extrato no WFPay
      * @param array $params Parametros adicionais para a requisição
      *
      * @access public
      * @return array
      */
-    public function buscaTransactions(int $company_id, int $charge_id,  array $params = []): array
+    public function buscaTransactions(int $company_id, int $transaction_id,  array $params = []): array
     {
         try {
             $params = array_filter($params, function($item) {
@@ -904,10 +904,10 @@ class Tools extends ToolsBase
                     'value' => $company_id
                 ];
             }
-            if (!empty($charge_id)) {
+            if (!empty($transaction_id)) {
                 $params[] = [
-                    'name' => 'charge_id',
-                    'value' => $charge_id
+                    'name' => 'transaction_id',
+                    'value' => $transaction_id
                 ];
             }
 
