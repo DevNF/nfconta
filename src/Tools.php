@@ -986,6 +986,51 @@ class Tools extends ToolsBase
     }
 
     /**
+     * Função responsável por realizar um agendamento de um pagamento de uma conta
+     *
+     * @param int $company_id ID da empresa que irá pagar a conta
+     * @param array $dados Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function agendaPagamento(int $company_id, array $dados, array $params = []): array
+    {
+        try {
+            $dados['company_id'] = $company_id;
+            $dados = $this->post("nfconta/payments/schedule", $dados, $params);
+
+            return $dados;
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+
+    /**
+     * Função responsável por realizar um agendamento de uma transferencia
+     *
+     * @param int $company_id ID da empresa que irá pagar a conta
+     * @param array $dados Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function agendaTransferencia(int $company_id, array $dados, array $params = []): array
+    {
+        try {
+            $dados['company_id'] = $company_id;
+            $dados = $this->post("nfconta/transfers/schedule", $dados, $params);
+
+            return $dados;
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
      * Função responsável por consultar um pagamento de uma conta
      *
      * @param int $company_id ID da empresa que irá consultar a conta
@@ -1067,6 +1112,183 @@ class Tools extends ToolsBase
             $dados = $this->post("nfconta/transfers", $dados, $params);
 
             return $dados;
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por gerar uma assinatura no WFPay
+     *
+     * @param int $company_id ID da empresa que irá gerar cobrança
+     * @param array $dados Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function geraAssinaturaArmazenamento(int $company_id, array $dados, array $params = []): array
+    {
+        $errors = [];
+        if ((!isset($dados['customer_id']) || empty($dados['customer_id'])) && (!isset($dados['customer']) || empty($dados['customer']))) {
+            $errors[] = 'O cliente é obrigatório';
+        }
+        if (!isset($dados['value']) || empty($dados['value'])) {
+            $errors[] = 'O valor da assinatura é obrigatório';
+        }
+        if (!isset($dados['next_due_date']) || empty($dados['next_due_date'])) {
+            $errors[] = 'A data de vencimento da assinatura é obrigatório';
+        }
+        if (!isset($dados['cycle']) || empty($dados['cycle'])) {
+            $errors[] = 'O ciclo da assinatura é obrigatório';
+        }
+        if (!isset($dados['type_payment']) || empty($dados['type_payment'])) {
+            $errors[] = 'O tipo de pagamento da assinatura é obrigatório';
+        }
+        if (!empty($errors)) {
+            throw new Exception(implode("\r\n", $errors), 1);
+        }
+
+        try {
+            $dados['company_id'] = $company_id;
+            $dados = $this->post("nfconta/subscriptions", $dados, $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por verificar uma assinatura na WFPay
+     *
+     * @param int $company_id ID da empresa que irá gerar cobrança
+     * @param int $subscription_id ID da assinatura no WFPay
+     * @param array $dados Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function verificaStatusArmazenamento(int $company_id, int $subscription_id, array $params = []): array
+    {
+        $errors = [];
+        if (empty($company_id)) {
+            $errors[] = 'O ID da empresa é obrigatório';
+        }
+        if (empty($subscription_id)) {
+            $errors[] = 'O ID da assinatura é obrigatório';
+        }
+        if (!empty($errors)) {
+            throw new Exception(implode("\r\n", $errors), 1);
+        }
+
+        $params[] = [
+            'name' => 'company_id',
+            'value' => $company_id
+        ];
+
+        $params[] = [
+            'name' => 'subscription_id',
+            'value' => $subscription_id
+        ];
+
+        try {
+            $dados = $this->get("nfconta/subscriptions", $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por cancelar uma assinatura na WFPay
+     *
+     * @param int $company_id ID da empresa que irá gerar cobrança
+     * @param int $subscription_id ID da assinatura no WFPay
+     * @param array $dados Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function cancelaAssinaturaArmazenamento(int $company_id, int $subscription_id, array $params = []): array
+    {
+        $errors = [];
+        if (empty($company_id)) {
+            $errors[] = 'O ID da empresa é obrigatório';
+        }
+        if (empty($subscription_id)) {
+            $errors[] = 'O ID da assinatura é obrigatório';
+        }
+        if (!empty($errors)) {
+            throw new Exception(implode("\r\n", $errors), 1);
+        }
+
+        $params[] = [
+            'name' => 'company_id',
+            'value' => $company_id
+        ];
+
+        try {
+            $dados = $this->delete("nfconta/subscriptions/$subscription_id", $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por remover um evento crítico na NFConta
+     *
+     * @param int $critical_event_id ID do evento crítico
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function cancelaEventoCritico(int $company_id, int $critical_event_id, array $params = []): array
+    {
+        try {
+
+            if (empty($company_id)) {
+                $errors[] = 'O ID da empresa é obrigatório';
+            }
+
+            if (empty($critical_event_id)) {
+                $errors[] = 'O ID do evento crítico é obrigatório';
+            }
+
+            if (!empty($errors)) {
+                throw new Exception(implode("\r\n", $errors), 1);
+            }
+
+            $params[] = [
+                'name' => 'company_id',
+                'value' => $company_id
+            ];
+
+            $dados = $this->delete("nfconta/critical-event/$critical_event_id", $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
         } catch (\Exception $error) {
             throw new Exception($error, 1);
         }
