@@ -1007,7 +1007,6 @@ class Tools extends ToolsBase
         }
     }
 
-
     /**
      * Função responsável por realizar um agendamento de uma transferencia
      *
@@ -1283,6 +1282,71 @@ class Tools extends ToolsBase
             ];
 
             $dados = $this->delete("nfconta/critical-event/$critical_event_id", $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por buscar uma cobrança na NFConta pelo WFPay
+     *
+     * @param int $company_id ID da empresa que irá buscar a cobrança
+     * @param int $wfpay_installment_id ID da cobrança no wfpay
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function buscaCobrancaNFHubWfpay(int $company_id, int $wfpay_installment_id, array $params = []): array
+    {
+        try {
+            $params = array_filter($params, function($item) {
+                return $item['name'] !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+            $dados = $this->get("nfconta/charges/$wfpay_installment_id", $params);
+
+            if (!isset($dados['body']->message)) {
+                return $dados;
+            }
+
+            throw new Exception($dados['body']->message, 1);
+        } catch (\Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função resposável por gerar uma cobrança na NFConta pelo WFPay
+     *
+     * @param int $company_id ID da empresa que irá gerar a cobrança
+     * @param array $data Dados da requisição
+     * @param array $params Parametros adicionais para a requisição
+     *
+     * @access public
+     * @return array
+     */
+    public function geraCobrancaContratoNFHubWfpay(int $company_id, array $data, array $params = []): array
+    {
+        try {
+            $params[] = [
+                'name' => 'company_id',
+                'value' => $company_id
+            ];
+
+            $dados = $this->post("nfconta/installments", $data, $params);
 
             if (!isset($dados['body']->message)) {
                 return $dados;
