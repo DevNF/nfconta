@@ -1357,4 +1357,89 @@ class Tools extends ToolsBase
             throw new Exception($error, 1);
         }
     }
+
+     /**
+     * Função responsável por buscar as nfses
+     *
+     * @param integer $company_id ID da empresa
+     * @param integer $customer_id ID do customer
+     * @param array $params Parâmetros adicionais para a requisição
+     *
+     * @access public
+     * @return boolean
+     */
+    public function buscaNfsesWfpay(int $company_id, int $customer_id, array $params = []) :array
+    {
+        try {
+            $params = array_filter($params, function($value, $key) {
+                return $key !== 'company_id';
+            }, ARRAY_FILTER_USE_BOTH);
+
+            if (!empty($company_id)) {
+                $params[] = [
+                    'name' => 'company_id',
+                    'value' => $company_id
+                ];
+            }
+
+            $dados = $this->get("nfconta/nfses/$customer_id", $params);
+
+            if ($dados['httpCode'] >= 200 && $dados['httpCode'] <= 299) {
+                return $dados;
+            }
+
+            if (isset($dados['body']->message)) {
+                throw new Exception($dados['body']->message, 1);
+            }
+
+            if (isset($dados['body']->errors)) {
+                throw new Exception(implode("\r\n", $dados['body']->errors), 1);
+            }
+
+            throw new Exception(json_encode($dados), 1);
+        } catch (Exception $error) {
+            throw new Exception($error, 1);
+        }
+    }
+
+    /**
+     * Função responsável por enviar email com as NFSe do WFPay
+     *
+     * @param integer $company_id ID da empresa
+     * @param integer $customer_id ID do customer
+     * @param array $params Parâmetros adicionais para a requisição
+     *
+     * @access public
+     * @return boolean
+     */
+    public function enviaEmailNfses(string $company_cnpj, int $service_invoice_id, array $emails, array $params = []): array
+   {
+       try {
+           $headers = [
+               "company-cnpj: $company_cnpj",
+           ];
+           $params = [
+               'emails' => $emails
+           ];
+
+           $response = $this->post("/invoice-services/$service_invoice_id/email", $params, [], $headers);
+
+           if ($response['httpCode'] >= 200 || $response['httpCode'] <= 299) {
+               return $response;
+           }
+
+           if (isset($response['body']->message)) {
+               throw new Exception($response['body']->message, 1);
+           }
+
+           if (isset($response['body']->errors)) {
+               throw new Exception(implode("\r\n", $response['body']->errors), 1);
+           }
+
+           throw new Exception(json_encode($response), 1);
+       } catch (Exception $e) {
+           throw new Exception($e, 1);
+       }
+   }
 }
+
