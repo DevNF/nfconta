@@ -1362,13 +1362,13 @@ class Tools extends ToolsBase
      * Função responsável por buscar as nfses
      *
      * @param integer $company_id ID da empresa
-     * @param integer $customer_id ID do customer
+     * @param string $cpfcnpj ID do customer
      * @param array $params Parâmetros adicionais para a requisição
      *
      * @access public
-     * @return boolean
+     * @return array
      */
-    public function buscaNfsesWfpay(int $company_id, int $customer_id, array $params = []) :array
+    public function buscaNfsesWfpay(int $company_id, string $cpfcnpj, array $params = []) :array
     {
         try {
             $params = array_filter($params, function($value, $key) {
@@ -1381,8 +1381,14 @@ class Tools extends ToolsBase
                     'value' => $company_id
                 ];
             }
+            if (!empty($cpfcnpj)) {
+                $params[] = [
+                    'name' => 'cpfcnpj',
+                    'value' => $cpfcnpj
+                ];
+            }
 
-            $dados = $this->get("nfconta/nfses/$customer_id", $params);
+            $dados = $this->get("nfconta/nfses", $params);
 
             if ($dados['httpCode'] >= 200 && $dados['httpCode'] <= 299) {
                 return $dados;
